@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DEWDROP Stage 4 V2</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+  :root{--bg:#0f1117;--surface:#171b26;--surface2:#1e2333;--surface3:#252a3a;--border:#2d3348;--border-light:#3a4060;--text:#e8eaf0;--text-muted:#7e8599;--text-dim:#4a5070;--accent:#4f7cff;--accent-hover:#6b93ff;--accent-glow:rgba(79,124,255,.15);--green:#34d399;--green-dim:rgba(52,211,153,.12);--amber:#f59e0b;--amber-dim:rgba(245,158,11,.12);--red:#f87171;--red-dim:rgba(248,113,113,.12);--purple:#a78bfa;--purple-dim:rgba(167,139,250,.12);--teal:#22d3ee;--teal-dim:rgba(34,211,238,.12);--ai:#e879f9;--ai-dim:rgba(232,121,249,.12);--radius:8px;--radius-lg:12px;--shadow:0 4px 24px rgba(0,0,0,.4)}
+  *{box-sizing:border-box;margin:0;padding:0}html,body{height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+  .app{display:flex;height:100vh;overflow:hidden}.sidebar{width:240px;min-width:240px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column}.main{flex:1;overflow-y:auto;display:flex;flex-direction:column}
+  .sidebar-header{padding:20px 16px 16px;border-bottom:1px solid var(--border)}.logo{font-size:18px;font-weight:700;letter-spacing:-.5px}.logo span{color:var(--accent)}.logo-sub{font-size:11px;color:var(--text-muted);margin-top:2px;font-family:'IBM Plex Mono',monospace}.version-badge{display:inline-flex;align-items:center;background:var(--ai-dim);color:var(--ai);border:1px solid rgba(232,121,249,.2);padding:1px 6px;border-radius:10px;font-size:10px;font-family:'IBM Plex Mono',monospace;margin-top:4px}
+  .role-switcher{padding:12px 16px;border-bottom:1px solid var(--border)}.role-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);margin-bottom:6px}.role-select{width:100%;background:var(--surface3);border:1px solid var(--border);color:var(--text);padding:7px 10px;border-radius:var(--radius);font-size:12px;font-family:'Inter',sans-serif;cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237e8599' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 8px center}.role-badge{display:inline-flex;align-items:center;gap:5px;margin-top:6px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:500}.role-badge.consultant{background:var(--accent-glow);color:var(--accent)}.role-badge.rm{background:var(--purple-dim);color:var(--purple)}.role-badge.admin{background:var(--amber-dim);color:var(--amber)}.role-badge.add-consultant{background:var(--teal-dim);color:var(--teal)}
+  .nav{flex:1;padding:12px 8px;overflow-y:auto}.nav-section{margin-bottom:16px}.nav-section-label{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-dim);padding:0 8px;margin-bottom:4px}.nav-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:var(--radius);cursor:pointer;color:var(--text-muted);font-size:13px;transition:all .15s;margin-bottom:1px}.nav-item:hover{background:var(--surface2);color:var(--text)}.nav-item.active{background:var(--accent-glow);color:var(--accent)}.nav-icon{width:16px;text-align:center;font-size:14px}.nav-badge{margin-left:auto;background:var(--surface3);color:var(--text-muted);font-size:10px;padding:1px 6px;border-radius:10px;font-family:'IBM Plex Mono',monospace}
+  .sidebar-footer{padding:12px 16px;border-top:1px solid var(--border)}.client-chip{background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px}.client-chip-label{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.06em}.client-chip-name{font-size:12px;font-weight:600;margin-top:1px}.client-chip-meta{font-size:11px;color:var(--text-muted);margin-top:2px}
+  .topbar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:12px;min-height:56px}.topbar-breadcrumb{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text-muted)}.topbar-breadcrumb span{color:var(--text);font-weight:500}.topbar-breadcrumb .sep{color:var(--text-dim)}.topbar-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+  .stage-bar{background:var(--surface);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;gap:6px;overflow-x:auto}.stage-step{display:flex;align-items:center;gap:6px;font-size:11px;white-space:nowrap}.stage-dot{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;font-family:'IBM Plex Mono',monospace;flex-shrink:0}.stage-dot.done{background:var(--green-dim);color:var(--green)}.stage-dot.active{background:var(--accent);color:#fff}.stage-dot.future{background:var(--surface3);color:var(--text-dim)}.stage-name{color:var(--text-muted)}.stage-name.active{color:var(--text);font-weight:500}.stage-connector{width:24px;height:1px;background:var(--border);flex-shrink:0}.stage-connector.done{background:var(--green);opacity:.4}
+  .content{flex:1;padding:24px}.page{display:none}.page.active{display:block}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px}.card+.card{margin-top:16px}.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:8px}.card-title{font-size:14px;font-weight:600}.card-subtitle{font-size:12px;color:var(--text-muted);margin-top:2px}.section-title{font-size:18px;font-weight:700;letter-spacing:-.3px;margin-bottom:4px}.section-sub{font-size:13px;color:var(--text-muted);margin-bottom:20px}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:'Inter',sans-serif}.btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent-hover)}.btn-secondary{background:var(--surface3);color:var(--text);border:1px solid var(--border)}.btn-secondary:hover{background:var(--surface2);border-color:var(--border-light)}.btn-ghost{background:transparent;color:var(--text-muted);border:1px solid var(--border)}.btn-ghost:hover{background:var(--surface2);color:var(--text)}.btn-danger{background:var(--red-dim);color:var(--red);border:1px solid rgba(248,113,113,.2)}.btn-success{background:var(--green-dim);color:var(--green);border:1px solid rgba(52,211,153,.2)}.btn-success:hover{background:rgba(52,211,153,.25)}.btn-ai{background:var(--ai-dim);color:var(--ai);border:1px solid rgba(232,121,249,.3)}.btn-ai:hover{background:rgba(232,121,249,.2)}.btn-sm{padding:5px 10px;font-size:12px}.btn:disabled{opacity:.4;cursor:not-allowed}
+  .chip{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:500}.chip-green{background:var(--green-dim);color:var(--green)}.chip-amber{background:var(--amber-dim);color:var(--amber)}.chip-red{background:var(--red-dim);color:var(--red)}.chip-blue{background:var(--accent-glow);color:var(--accent)}.chip-purple{background:var(--purple-dim);color:var(--purple)}.chip-dim{background:var(--surface3);color:var(--text-muted)}.chip-teal{background:var(--teal-dim);color:var(--teal)}.chip-ai{background:var(--ai-dim);color:var(--ai)}
+  .workshop-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px 20px;cursor:pointer;transition:all .15s}.workshop-card:hover{border-color:var(--border-light);background:var(--surface2)}.workshop-card.selected{border-color:var(--accent);background:var(--surface2)}.wc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}.wc-name{font-size:14px;font-weight:600}.wc-type{font-size:11px;color:var(--text-muted);margin-top:2px;font-family:'IBM Plex Mono',monospace}.wc-meta{display:flex;gap:16px}.wc-meta-item{font-size:11px;color:var(--text-muted)}
+  .session-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:all .15s}.session-card:hover{border-color:var(--border-light)}.session-num{font-size:11px;font-family:'IBM Plex Mono',monospace;color:var(--text-dim);min-width:28px}.session-info{flex:1}.session-title{font-size:13px;font-weight:500}.session-meta{font-size:11px;color:var(--text-muted);margin-top:2px}
+  .form-group{margin-bottom:16px}.form-label{font-size:12px;font-weight:500;color:var(--text-muted);margin-bottom:6px;display:flex;align-items:center;gap:4px;flex-wrap:wrap}.form-label .req{color:var(--red)}.form-input,.form-select,.form-textarea{width:100%;background:var(--surface2);border:1px solid var(--border);color:var(--text);padding:9px 12px;border-radius:var(--radius);font-size:13px;font-family:'Inter',sans-serif;transition:border-color .15s}.form-input:focus,.form-select:focus,.form-textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-glow)}.form-textarea{resize:vertical;min-height:80px}.form-select{cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237e8599' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}.form-hint{font-size:11px;color:var(--text-dim);margin-top:4px}.field-readonly{background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius);padding:9px 12px;font-size:13px;color:var(--text-muted)}.field-tag{display:inline-flex;align-items:center;gap:4px;background:var(--surface3);border:1px solid var(--border);padding:3px 8px;border-radius:20px;font-size:11px;color:var(--text-muted);margin:2px}
+  .ai-field-wrapper{position:relative}.ai-badge-inline{position:absolute;top:8px;right:8px;background:var(--ai-dim);color:var(--ai);border:1px solid rgba(232,121,249,.3);padding:2px 7px;border-radius:10px;font-size:10px;font-family:'IBM Plex Mono',monospace;pointer-events:none}.ai-area{background:var(--surface2);border:1px solid rgba(232,121,249,.25);border-radius:var(--radius);padding:12px;font-size:12px;color:var(--text-muted);line-height:1.7}.ai-item{padding:8px 10px;background:rgba(232,121,249,.05);border:1px solid rgba(232,121,249,.15);border-radius:var(--radius);margin-bottom:6px;display:flex;gap:8px;align-items:flex-start}.ai-item:last-child{margin-bottom:0}.ai-item-text{flex:1;font-size:12px;color:var(--text)}.ai-item-meta{font-size:10px;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;white-space:nowrap}
+  .status-row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border)}.status-row:last-child{border-bottom:none}.status-check{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;flex-shrink:0}.status-check.met{background:var(--green-dim);color:var(--green)}.status-check.pending{background:var(--surface3);color:var(--text-dim)}.status-check.blocked{background:var(--red-dim);color:var(--red)}.status-label{font-size:12px;color:var(--text-muted);flex:1}.status-label.met{color:var(--text)}
+  .banner{padding:12px 16px;border-radius:var(--radius);display:flex;align-items:flex-start;gap:10px;font-size:12px;margin-bottom:16px}.banner-warning{background:var(--amber-dim);border:1px solid rgba(245,158,11,.25);color:var(--amber)}.banner-info{background:var(--accent-glow);border:1px solid rgba(79,124,255,.25);color:var(--accent)}.banner-danger{background:var(--red-dim);border:1px solid rgba(248,113,113,.25);color:var(--red)}.banner-success{background:var(--green-dim);border:1px solid rgba(52,211,153,.25);color:var(--green)}.banner-restricted{background:rgba(248,113,113,.08);border:1px solid rgba(248,113,113,.3);color:var(--red);font-weight:600;text-align:center;padding:10px 16px;border-radius:var(--radius)}.banner-ai{background:var(--ai-dim);border:1px solid rgba(232,121,249,.25);color:var(--ai)}
+  .lifecycle-track{display:flex;gap:0;margin-bottom:20px}.lifecycle-step{flex:1;padding:12px 14px;background:var(--surface2);border:1px solid var(--border)}.lifecycle-step:first-child{border-radius:var(--radius) 0 0 var(--radius)}.lifecycle-step:last-child{border-radius:0 var(--radius) var(--radius) 0}.lifecycle-step.active{background:var(--accent-glow);border-color:var(--accent)}.lifecycle-step.done{background:var(--green-dim);border-color:rgba(52,211,153,.3)}.lifecycle-step-num{font-size:10px;color:var(--text-dim);font-family:'IBM Plex Mono',monospace;margin-bottom:3px}.lifecycle-step-label{font-size:12px;font-weight:500}.lifecycle-step-sub{font-size:11px;color:var(--text-muted);margin-top:2px}
+  .tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin-bottom:20px;overflow-x:auto}.tab{padding:10px 16px;font-size:13px;color:var(--text-muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;margin-bottom:-1px;white-space:nowrap}.tab:hover{color:var(--text)}.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+  .divider{height:1px;background:var(--border);margin:20px 0}.info-box{background:var(--surface3);border-left:3px solid var(--accent);padding:10px 14px;border-radius:0 var(--radius) var(--radius) 0;font-size:12px;color:var(--text-muted);margin-bottom:12px}
+  .metric{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px}.metric-value{font-size:28px;font-weight:700;font-family:'IBM Plex Mono',monospace;line-height:1}.metric-label{font-size:11px;color:var(--text-muted);margin-top:6px}.metric-sub{font-size:11px;margin-top:4px}
+  .progress-bar{height:4px;background:var(--surface3);border-radius:4px;overflow:hidden}.progress-fill{height:100%;border-radius:4px}.progress-fill.blue{background:var(--accent)}.progress-fill.green{background:var(--green)}
+  .wp-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;margin-bottom:8px}.wp-card.incomplete{border-left:3px solid var(--red)}.wp-card.complete{border-left:3px solid var(--green)}
+  .theme-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;margin-bottom:8px;display:flex;align-items:flex-start;gap:12px}.theme-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:4px}.theme-dot.enabler{background:var(--green)}.theme-dot.watchpoint{background:var(--amber)}
+  .read-only-badge{display:inline-flex;align-items:center;gap:4px;background:var(--surface3);border:1px solid var(--border);border-radius:4px;padding:2px 6px;font-size:10px;color:var(--text-dim)}.source-chip{display:inline-flex;align-items:center;gap:4px;background:var(--surface3);border:1px solid var(--border-light);border-radius:4px;padding:3px 8px;font-size:10px;color:var(--text-muted);font-family:'IBM Plex Mono',monospace}
+  .checklist-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);align-items:flex-start}.checklist-item:last-child{border-bottom:none}.checklist-code{font-size:10px;font-family:'IBM Plex Mono',monospace;color:var(--text-dim);margin-right:4px}.checklist-text{font-size:12px;color:var(--text-muted)}.checklist-text.done{color:var(--text)}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}.modal-overlay.open{display:flex}.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);width:100%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow)}.modal-header{padding:20px 20px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}.modal-title{font-size:15px;font-weight:600}.modal-close{background:none;border:none;color:var(--text-muted);cursor:pointer;font-size:18px;padding:4px;line-height:1}.modal-close:hover{color:var(--text)}.modal-body{padding:20px}.modal-footer{padding:16px 20px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+  .toast-container{position:fixed;bottom:24px;right:24px;z-index:2000;display:flex;flex-direction:column;gap:8px}.toast{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;font-size:13px;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow);animation:slideIn .2s ease;max-width:340px}.toast.success{border-left:3px solid var(--green)}.toast.info{border-left:3px solid var(--accent)}.toast.warning{border-left:3px solid var(--amber)}.toast.ai{border-left:3px solid var(--ai)}
+  @keyframes slideIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+  .flex{display:flex}.items-center{align-items:center}.justify-between{justify-content:space-between}.gap-8{gap:8px}.gap-12{gap:12px}
+  .mt-4{margin-top:4px}.mt-8{margin-top:8px}.mt-12{margin-top:12px}.mt-16{margin-top:16px}.mt-20{margin-top:20px}
+  .mb-8{margin-bottom:8px}.mb-12{margin-bottom:12px}.mb-16{margin-bottom:16px}
+  .text-sm{font-size:12px}.text-xs{font-size:11px}.text-muted{color:var(--text-muted)}.text-dim{color:var(--text-dim)}
+  .font-mono{font-family:'IBM Plex Mono',monospace}.font-semibold{font-weight:600}
+  ::-webkit-scrollbar{width:6px;height:6px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+  <div class="sidebar-header">
+    <div class="logo">DEW<span>DROP</span></div>
+    <div class="logo-sub">Advisory Platform · Stage 4</div>
+    <div class="version-badge">V2 — AI-Enhanced</div>
+  </div>
+  <div class="role-switcher">
+    <div class="role-label">Active Role</div>
+    <select class="role-select" id="roleSelect" onchange="switchRole(this.value)">
+      <option value="consultant">GCC Advisory Lead</option>
+      <option value="add-consultant">Additional Consultant</option>
+      <option value="rm">Relationship Manager</option>
+      <option value="admin">Admin</option>
+    </select>
+    <div class="role-badge consultant" id="roleBadge">● GCC Advisory Lead</div>
+  </div>
+  <nav class="nav">
+    <div class="nav-section">
+      <div class="nav-section-label">Stage 4</div>
+      <div class="nav-item active" onclick="navigate('dashboard')"><span class="nav-icon">⬡</span>Dashboard<span class="nav-badge">S1</span></div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Active Workshop</div>
+      <div class="nav-item" onclick="navigate('ws-setup')"><span class="nav-icon">⚙</span>Workshop Setup<span class="nav-badge">S2</span></div>
+      <div class="nav-item" onclick="navigate('sessions')"><span class="nav-icon">📋</span>Sessions<span class="nav-badge">S3</span></div>
+      <div class="nav-item" onclick="navigate('session-live')"><span class="nav-icon">▶</span>Live Session<span class="nav-badge">S4</span></div>
+      <div class="nav-item" onclick="navigate('outputs')"><span class="nav-icon">◈</span>Outputs Panel<span class="nav-badge">S5</span></div>
+      <div class="nav-item" onclick="navigate('ws-summary')"><span class="nav-icon">◎</span>Workshop Summary<span class="nav-badge">S6</span></div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Stage Close</div>
+      <div class="nav-item" onclick="navigate('consolidated')"><span class="nav-icon">✦</span>Consolidated Summary<span class="nav-badge">S7</span></div>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="client-chip">
+      <div class="client-chip-label">Engagement</div>
+      <div class="client-chip-name">Meridian Financial</div>
+      <div class="client-chip-meta">Entity-led · Banking & FS</div>
+    </div>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="stage-bar">
+    <div class="stage-step"><div class="stage-dot done">✓</div><span class="stage-name">Scoping</span></div><div class="stage-connector done"></div>
+    <div class="stage-step"><div class="stage-dot done">✓</div><span class="stage-name">Assessment</span></div><div class="stage-connector done"></div>
+    <div class="stage-step"><div class="stage-dot done">✓</div><span class="stage-name">Empathy</span></div><div class="stage-connector done"></div>
+    <div class="stage-step"><div class="stage-dot active">4</div><span class="stage-name active">Visioning</span></div><div class="stage-connector"></div>
+    <div class="stage-step"><div class="stage-dot future">5</div><span class="stage-name">OKRs &amp; KPIs</span></div><div class="stage-connector"></div>
+    <div class="stage-step"><div class="stage-dot future">6</div><span class="stage-name">Roadmap</span></div><div class="stage-connector"></div>
+    <div class="stage-step"><div class="stage-dot future">7</div><span class="stage-name">Business Case</span></div><div class="stage-connector"></div>
+    <div class="stage-step"><div class="stage-dot future">8</div><span class="stage-name">Finalisation</span></div>
+  </div>
+  <div class="topbar">
+    <div class="topbar-breadcrumb"><span>Stage 4</span><span class="sep">/</span><span id="topbarCurrent">Dashboard</span></div>
+    <div class="topbar-actions" id="topbarActions"></div>
+  </div>
+
+  <div class="content">
+
+  <!-- S1 DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <div id="dash-consultant">
+      <div class="flex items-center justify-between mb-12">
+        <div><div class="section-title">Stage 4 — Visioning Workshop</div><div class="section-sub">Convert empathy insights into agreed strategic direction</div></div>
+        <button class="btn btn-primary" id="create-ws-btn" onclick="openModal('createWsModal')">+ Create Workshop</button>
+      </div>
+      <div class="grid-4 mb-16">
+        <div class="metric"><div class="metric-value">2</div><div class="metric-label">Workshops</div><div class="metric-sub"><span class="chip chip-green" style="font-size:10px">1 Approved</span></div></div>
+        <div class="metric"><div class="metric-value">5</div><div class="metric-label">Sessions</div><div class="metric-sub" style="color:var(--text-muted)">4 complete</div></div>
+        <div class="metric"><div class="metric-value">8</div><div class="metric-label">AI Themes</div><div class="metric-sub"><span class="chip chip-ai" style="font-size:10px">✦ AI Generated</span></div></div>
+        <div class="metric"><div class="metric-value" style="color:var(--amber)">1</div><div class="metric-label">Pending RM</div><div class="metric-sub"><span class="chip chip-amber" style="font-size:10px">Action needed</span></div></div>
+      </div>
+      <div class="card mb-16">
+        <div class="card-header"><div class="card-title">Workshops</div><div class="card-subtitle">Click to open a workshop</div></div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div class="workshop-card" onclick="navigate('sessions')">
+            <div class="wc-top"><div><div class="wc-name">Meridian – Alignment Workshop</div><div class="wc-type">ALIGNMENT WORKSHOP · Workshop 1</div></div><span class="chip chip-green">Complete</span></div>
+            <div class="wc-meta"><div class="wc-meta-item">▶ 2 sessions</div><div class="wc-meta-item">👥 4 participants</div><div class="wc-meta-item">Vision: AI Draft generated</div></div>
+          </div>
+          <div class="workshop-card selected" onclick="navigate('sessions')">
+            <div class="wc-top"><div><div class="wc-name">Meridian – Client Visioning Workshop</div><div class="wc-type">CLIENT VISIONING · Workshop 2</div></div><span class="chip chip-amber">Pending RM Review</span></div>
+            <div class="wc-meta"><div class="wc-meta-item">▶ 3 sessions</div><div class="wc-meta-item">👥 9 participants</div><div class="wc-meta-item">Vision: Locked &amp; CEO Approved</div></div>
+            <div style="margin-top:10px"><div class="progress-bar"><div class="progress-fill blue" style="width:85%"></div></div><div class="text-xs text-muted mt-4">85% complete — awaiting RM approval</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-header"><div class="card-title">Consolidated Outputs</div></div>
+          <div class="status-row"><div class="status-check met">✓</div><div class="status-label met">Problem Statement</div><span class="chip chip-green">Approved</span></div>
+          <div class="status-row"><div class="status-check met">✓</div><div class="status-label met">Delivery Intent</div><span class="chip chip-green">Approved</span></div>
+          <div class="status-row"><div class="status-check met">✓</div><div class="status-label met">Vision Statement</div><span class="chip chip-green">Locked · Approved</span></div>
+          <div class="status-row"><div class="status-check met">✓</div><div class="status-label met">Strategic Themes</div><span class="chip chip-ai">8 AI-generated</span></div>
+          <div class="status-row"><div class="status-check pending">○</div><div class="status-label">Watchpoints</div><span class="chip chip-amber">2 of 3 complete</span></div>
+          <div class="status-row"><div class="status-check met">✓</div><div class="status-label met">Strategic Direction</div><span class="chip chip-green">Finalised</span></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Stage 4 Exit Criteria</div></div>
+          <div class="checklist-item"><div><span class="chip chip-green" style="padding:2px 5px;font-size:10px">✓</span></div><div class="checklist-text done"><span class="checklist-code">S01</span>Client Visioning Workshop exists + Approved</div></div>
+          <div class="checklist-item"><div><span class="chip chip-green" style="padding:2px 5px;font-size:10px">✓</span></div><div class="checklist-text done"><span class="checklist-code">S02</span>Vision Statement approved</div></div>
+          <div class="checklist-item"><div><span class="chip chip-red" style="padding:2px 5px;font-size:10px">✗</span></div><div class="checklist-text"><span class="checklist-code">S03</span>All Watchpoints complete — 1 remaining</div></div>
+          <div class="checklist-item"><div><span class="chip chip-green" style="padding:2px 5px;font-size:10px">✓</span></div><div class="checklist-text done"><span class="checklist-code">S04</span>Strategic Direction finalised</div></div>
+          <div class="checklist-item"><div><span class="chip chip-dim" style="padding:2px 5px;font-size:10px">○</span></div><div class="checklist-text"><span class="checklist-code">S07</span>Stage 5 intro + date confirmed in Dewdrop</div></div>
+          <button class="btn btn-secondary btn-sm mt-12" style="width:100%;justify-content:center;opacity:.4" disabled>Consolidated Summary — criteria not met</button>
+        </div>
+      </div>
+    </div>
+    <div id="dash-rm" style="display:none">
+      <div class="section-title">Stage 4 — RM Review Queue</div>
+      <div class="section-sub" style="margin-bottom:20px">Review submitted workshops and issue decisions</div>
+      <div class="banner banner-info">📬 1 workshop pending your review</div>
+      <div class="card">
+        <div class="card-header"><div><div class="card-title">Meridian – Client Visioning Workshop</div><div class="text-sm text-muted mt-4">Submitted by J. Kapoor · Today 11:42 AM</div></div><span class="chip chip-amber">Pending Review</span></div>
+        <div class="info-box">Review the outputs below, then approve or return with feedback.</div>
+        <div class="grid-2 mb-12">
+          <div class="status-row" style="border:none;padding:6px 0"><div class="status-check met">✓</div><div class="status-label met">Problem Statement — Approved</div></div>
+          <div class="status-row" style="border:none;padding:6px 0"><div class="status-check met">✓</div><div class="status-label met">Delivery Intent — Approved</div></div>
+          <div class="status-row" style="border:none;padding:6px 0"><div class="status-check met">✓</div><div class="status-label met">Vision Statement — Locked · CEO Confirmed</div></div>
+          <div class="status-row" style="border:none;padding:6px 0"><div class="status-check pending">○</div><div class="status-label">Watchpoints — 1 incomplete</div></div>
+        </div>
+        <div class="flex gap-8">
+          <button class="btn btn-success" onclick="showToast('Workshop approved. Consultant notified.','success')">✓ Approve Workshop</button>
+          <button class="btn btn-danger" onclick="openModal('returnModal')">↩ Return for Revision</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S2 WORKSHOP SETUP -->
+  <div class="page" id="page-ws-setup">
+    <div class="section-title">Workshop Setup</div>
+    <div class="section-sub">Configure this workshop before creating sessions</div>
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab(this,'ws-h')">Header &amp; Type</div>
+      <div class="tab" onclick="switchTab(this,'ws-c')">Consultants</div>
+      <div class="tab" onclick="switchTab(this,'ws-s3')">Stage 3 Inputs</div>
+      <div class="tab" onclick="switchTab(this,'ws-ps')">Problem Statement</div>
+      <div class="tab" onclick="switchTab(this,'ws-di')">Delivery Intent</div>
+    </div>
+    <div id="ws-h">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Workshop Header</div><span class="chip chip-blue">In Progress</span></div>
+        <div class="grid-2">
+          <div class="form-group"><label class="form-label">Workshop Name <span class="req">*</span></label><input class="form-input ws-field" value="Meridian – Client Visioning Workshop" /></div>
+          <div class="form-group"><label class="form-label">Workshop Type <span class="req">*</span></label><div class="field-readonly">Client Visioning Workshop <span class="read-only-badge">🔒 locked after first session</span></div></div>
+          <div class="form-group"><label class="form-label">Workshop Owner <span class="req">*</span></label><select class="form-select ws-field" id="ws-owner"><option>J. Kapoor (you)</option><option>A. Sharma</option></select></div>
+          <div class="form-group"><label class="form-label">Status</label><div class="field-readonly"><span class="chip chip-blue">In Progress</span></div></div>
+        </div>
+        <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea ws-field">Present findings to Meridian senior leadership, refine strategic recommendations, and obtain CEO approval on Vision Statement.</textarea></div>
+      </div>
+      <div class="flex gap-8 mt-16" id="ws-h-actions">
+        <button class="btn btn-secondary" onclick="showToast('Draft saved','info')">Save Draft</button>
+        <button class="btn btn-primary" onclick="showToast('Workshop confirmed','success')">Save &amp; Confirm Workshop</button>
+      </div>
+    </div>
+    <div id="ws-c" style="display:none">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Consultant Assignment</div></div>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--surface2);border-radius:var(--radius);border:1px solid var(--border)">
+            <div style="width:32px;height:32px;background:var(--accent-glow);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--accent)">J</div>
+            <div style="flex:1"><div class="font-semibold" style="font-size:13px">J. Kapoor</div><div class="text-xs text-muted">GCC Advisory Lead · Workshop Host</div></div>
+            <span class="chip chip-blue">Host</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--surface2);border-radius:var(--radius);border:1px solid var(--border)">
+            <div style="width:32px;height:32px;background:var(--teal-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:var(--teal)">A</div>
+            <div style="flex:1"><div class="font-semibold" style="font-size:13px">A. Sharma</div><div class="text-xs text-muted">Additional Consultant</div></div>
+            <button class="btn btn-ghost btn-sm" id="rm-con-btn">✕ Remove</button>
+          </div>
+        </div>
+        <button class="btn btn-secondary btn-sm mt-12" id="add-con-btn" onclick="showToast('Consultant assigned and notified','success')">+ Add Additional Consultant</button>
+      </div>
+    </div>
+    <div id="ws-s3" style="display:none">
+      <div class="banner banner-info">Stage 3 data flows in automatically. All fields below are read-only.</div>
+      <div class="card mb-12">
+        <div class="card-header"><div class="card-title">Selection Pool</div><span class="chip chip-dim">14 validated insights</span></div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px">
+          <span class="field-tag">AI capability building</span><span class="field-tag">Vendor dependency reduction</span><span class="field-tag">IP ownership clarity</span><span class="field-tag">Middle management alignment</span><span class="field-tag">Talent access (engineering)</span><span class="field-tag">Cost optimisation signals</span><span class="field-tag">Regulatory compliance readiness</span>
+        </div>
+      </div>
+      <div class="card mb-12">
+        <div class="card-header"><div class="card-title">Stage 3 Consultant Recommendations</div><span class="read-only-badge">Read-only</span></div>
+        <div class="field-readonly">Meridian's leadership cohort expressed strong intent to establish a captive GCC in India, primarily to reduce dependency on third-party vendors and build long-term AI capability. Key interviews surfaced readiness gaps in middle-management buy-in and unclear IP ownership structures.</div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Stakeholder Heat Map</div><span class="read-only-badge">🔒 Internal Only</span></div>
+        <div class="banner-restricted">⚠ INTERNAL ONLY — DO NOT SHARE SCREEN</div>
+        <div class="grid-3 mt-12">
+          <div class="metric"><div class="metric-value" style="font-size:22px;color:var(--green)">High</div><div class="metric-label">CEO Alignment</div></div>
+          <div class="metric"><div class="metric-value" style="font-size:22px;color:var(--amber)">Med</div><div class="metric-label">CTO Engagement</div></div>
+          <div class="metric"><div class="metric-value" style="font-size:22px;color:var(--red)">Low</div><div class="metric-label">COO Buy-in</div></div>
+        </div>
+      </div>
+    </div>
+    <div id="ws-ps" style="display:none">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Problem Statement</div><div class="card-subtitle">Single AI-generated narrative — not split into Objective/Subjective</div></div>
+          <div class="flex gap-8 items-center"><span class="chip chip-amber" id="ws-ps-chip">Draft</span><button class="btn btn-ai btn-sm ws-only-btn" onclick="regenPS()">✦ Regenerate with AI</button></div>
+        </div>
+        <div class="banner banner-ai" style="font-size:11px">✦ AI-generated using Stage 1–3 data — assessment gaps, delivery model constraints, readiness signals, and Stage 3 qualitative insights combined into one narrative. Consultant can override or fully rewrite.</div>
+        <div class="form-group" style="margin-bottom:0">
+          <div class="ai-field-wrapper">
+            <textarea class="form-textarea ws-field" style="min-height:160px;padding-right:90px" id="ps-field">Meridian Financial presents a strong strategic case for a captive GCC in India. Stage 2 assessment reveals a 3.1/5 readiness score with notable gaps in governance (2.4) and talent pipeline (2.8) — delivery model intent is Entity-led with a 4-year horizon, yet no dedicated India-based leadership is in place and vendor dependency accounts for 68% of technology delivery. Stage 3 interviews reinforce CEO conviction around GCC ownership, while surfacing operational uncertainty: IP ownership is ambiguous, middle-management alignment is inconsistent, and key engineering capabilities risk remaining vendor-retained unless early action is taken.</textarea>
+            <div class="ai-badge-inline">✦ AI Draft</div>
+          </div>
+          <div class="form-hint">Min 100 characters. Confirm in Workshop Outputs Panel (S5) to finalise.</div>
+        </div>
+      </div>
+    </div>
+    <div id="ws-di" style="display:none">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Delivery Intent</div><div class="card-subtitle">Recommended by Dewdrop at end of Stage 2 (Strategic Theme Assessment)</div></div>
+          <span class="chip chip-purple">Dewdrop Recommended</span>
+        </div>
+        <div class="banner banner-ai" style="font-size:11px">✦ The Delivery Intent shown is the model Dewdrop's Stage 2 assessment engine recommended — not client-chosen. Pre-fills as read-only. The base model type cannot be changed in Stage 4.</div>
+        <div style="display:flex;gap:12px;align-items:center;padding:14px;background:var(--surface3);border-radius:var(--radius);margin-bottom:16px">
+          <div style="font-size:28px">🏢</div>
+          <div><div class="font-semibold" style="font-size:15px">Entity-Led GCC (Captive)</div><div class="text-sm text-muted mt-4">Read-only — base model locked from Stage 2</div></div>
+          <div class="source-chip" style="margin-left:auto">Sourced: Stage 2 STA · Readiness 62%</div>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label class="form-label">Supporting Rationale <span class="text-muted">(editable)</span></label>
+          <textarea class="form-textarea ws-field">Given Meridian's 4-year GCC horizon, entity-led intent from Stage 2, and strong CEO mandate for IP ownership, a captive GCC structure offers the highest long-term value. BOT or Managed Services would not satisfy the strategic independence requirements surfaced during interviews.</textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S3 SESSIONS -->
+  <div class="page" id="page-sessions">
+    <div class="flex items-center justify-between mb-12">
+      <div><div class="section-title">Session Management</div><div class="section-sub">Meridian – Client Visioning Workshop</div></div>
+      <button class="btn btn-primary" id="add-session-btn" onclick="openModal('addSessionModal')">+ Add Session</button>
+    </div>
+    <div class="flex items-center gap-12 mb-16" style="padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg)">
+      <div class="text-sm text-muted">Progress:</div>
+      <div style="flex:1"><div class="progress-bar"><div class="progress-fill green" style="width:66%"></div></div></div>
+      <div class="text-sm text-muted font-mono">2 of 3 complete</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="session-card" onclick="navigate('session-live')"><div class="session-num font-mono">#01</div><div class="session-info"><div class="session-title">Client Visioning – Session 1</div><div class="session-meta">12 Jun 2025 · 10:00 AM · 4h · Video Call</div></div><span class="chip chip-green">Complete</span><span class="chip chip-ai" style="font-size:10px;margin-left:6px">✦ AI Analysed</span></div>
+      <div class="session-card" onclick="navigate('session-live')"><div class="session-num font-mono">#02</div><div class="session-info"><div class="session-title">Client Visioning – Session 2</div><div class="session-meta">14 Jun 2025 · 2:00 PM · 3h · Video Call</div></div><span class="chip chip-green">Complete</span><span class="chip chip-ai" style="font-size:10px;margin-left:6px">✦ AI Analysed</span></div>
+      <div class="session-card" onclick="navigate('session-live')" style="border-color:var(--accent)"><div class="session-num font-mono">#03</div><div class="session-info"><div class="session-title">Client Visioning – Session 3</div><div class="session-meta">18 Jun 2025 · 10:00 AM · Half Day · In-Person</div></div><span class="chip chip-blue">Scheduled</span></div>
+    </div>
+  </div>
+
+  <!-- S4 SESSION LIVE -->
+  <div class="page" id="page-session-live">
+    <div class="flex items-center justify-between mb-16">
+      <div><div class="section-title">Session 3 — Live Panel</div><div class="section-sub">Client Visioning Workshop · 18 Jun 2025 · In-Person · Mumbai HQ</div></div>
+      <div class="flex gap-8 items-center">
+        <span class="chip chip-blue" style="font-size:12px;padding:6px 12px" id="s4-chip">● Scheduled</span>
+        <button class="btn btn-primary" id="mark-ip-btn" onclick="markInProgress()">▶ Mark In Progress</button>
+      </div>
+    </div>
+    <div class="grid-2">
+      <div>
+        <div class="card mb-12">
+          <div class="card-header"><div class="card-title">Session Record</div><div class="text-xs text-muted font-mono">Auto-saves every 30s</div></div>
+          <div class="form-group">
+            <label class="form-label">Session Notes <span class="req">*</span></label>
+            <textarea class="form-textarea" style="min-height:100px" id="session-notes" placeholder="Capture key discussion points in real time... (min 50 chars)&#10;Used as AI input alongside transcript/recording."></textarea>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Discussion Log</label>
+            <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px;min-height:70px;font-size:12px;color:var(--text-muted)" id="discussion-log">
+              <div style="border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:6px"><span class="font-mono" style="color:var(--text-dim)">10:14</span> CEO raised concern about governance structure timeline</div>
+              <div><span class="font-mono" style="color:var(--text-dim)">10:32</span> CTO confirmed technical feasibility of GCC model</div>
+            </div>
+            <div class="flex gap-8 mt-8"><input class="form-input" style="font-size:12px" placeholder="Add log entry..." id="log-input" /><button class="btn btn-secondary btn-sm" onclick="addLog()">Add</button></div>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Challenges Raised</label>
+            <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:8px" id="challenges-list">
+              <div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);font-size:12px"><span style="color:var(--amber)">⚠</span> Timeline for entity setup unclear — blocks hiring</div>
+            </div>
+            <div class="flex gap-8"><input class="form-input" style="font-size:12px" placeholder="Add challenge..." id="challenge-input" /><button class="btn btn-secondary btn-sm" onclick="addChallenge()">Add</button></div>
+          </div>
+        </div>
+        <!-- AI ANALYSIS — V2 KEY CHANGE -->
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-title">Post-Session AI Analysis</div><div class="card-subtitle">Generates Decisions Made &amp; Session Insights from transcript + recording + notes</div></div>
+            <button class="btn btn-ai btn-sm" id="run-ai-btn" onclick="runAI()">✦ Run AI Analysis</button>
+          </div>
+          <div class="banner banner-ai" style="font-size:11px">✦ Active once transcript, recording, or notes (min 50 chars) are present. Each generated item is tagged AI Generated. Consultant can edit, delete, or manually add items.</div>
+          <div class="form-group">
+            <label class="form-label">Decisions Made <span class="chip chip-ai" style="font-size:10px;margin-left:4px">✦ AI Generated · Read-only to start</span></label>
+            <div class="ai-area" id="decisions-area">
+              <div class="ai-item"><div class="ai-item-text">GCC to be fully entity-led with direct India hiring from Day 1</div><div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end"><span class="chip chip-ai" style="font-size:10px">✦ AI Generated</span><div class="ai-item-meta">10:45</div></div></div>
+              <div class="ai-item"><div class="ai-item-text">Bengaluru confirmed as primary hub by CEO and CTO</div><div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end"><span class="chip chip-ai" style="font-size:10px">✦ AI Generated</span><div class="ai-item-meta">11:02</div></div></div>
+              <div id="manual-decisions"></div>
+            </div>
+            <div class="flex gap-8 mt-8"><input class="form-input" style="font-size:12px" placeholder="Add decision manually (tagged Consultant Added)..." id="decision-input" /><button class="btn btn-secondary btn-sm" onclick="addDecision()">+ Add</button></div>
+          </div>
+          <!-- SESSION INSIGHTS — NEW IN V2 -->
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Session Insights <span class="chip chip-ai" style="font-size:10px;margin-left:4px">✦ New in V2 · AI Generated</span></label>
+            <div class="ai-area" id="insights-area">
+              <div class="ai-item"><div class="ai-item-text">Strong CEO conviction on captive model — IP ownership framed as non-negotiable in strategic direction</div><div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end"><span class="chip chip-ai" style="font-size:10px">✦ AI Generated</span><div class="ai-item-meta">Insight</div></div></div>
+              <div class="ai-item"><div class="ai-item-text">COO uncertainty on operational readiness — potential Watchpoint for governance cadence and middle-management alignment</div><div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end"><span class="chip chip-ai" style="font-size:10px">✦ AI Generated</span><div class="ai-item-meta">Insight</div></div></div>
+            </div>
+            <div class="form-hint">Surfaces key qualitative insights used in Strategic Theme identification (S5). Consultant can edit or discard individual insights.</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="card mb-12">
+          <div class="card-header"><div class="card-title">Participants &amp; Attendance</div></div>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <div style="display:flex;align-items:center;gap:10px;padding:8px;background:var(--surface2);border-radius:var(--radius)">
+              <div style="width:28px;height:28px;background:var(--accent-glow);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent)">J</div>
+              <div style="flex:1"><div style="font-size:12px;font-weight:500">J. Kapoor</div><div class="text-xs text-muted">Session Host</div></div>
+              <span class="chip chip-green" style="font-size:10px">Present</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:8px;background:var(--surface2);border-radius:var(--radius)">
+              <div style="width:28px;height:28px;background:var(--green-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--green)">S</div>
+              <div style="flex:1"><div style="font-size:12px;font-weight:500">S. Patel (CEO)</div><div class="text-xs text-muted">External · Meridian</div></div>
+              <input type="checkbox" style="accent-color:var(--accent)" title="Mark attendance" />
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;padding:8px;background:var(--surface2);border-radius:var(--radius)">
+              <div style="width:28px;height:28px;background:var(--teal-dim);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--teal)">R</div>
+              <div style="flex:1"><div style="font-size:12px;font-weight:500">R. Doshi (CTO)</div><div class="text-xs text-muted">External · Meridian</div></div>
+              <input type="checkbox" style="accent-color:var(--accent)" checked />
+            </div>
+          </div>
+          <button class="btn btn-ghost btn-sm mt-8" id="add-ext-btn" onclick="openModal('addParticipantModal')">+ Add External Participant</button>
+        </div>
+        <div class="card mb-12">
+          <div class="card-header"><div class="card-title">Recording &amp; Transcript</div><div class="text-xs text-muted">Primary inputs for AI Analysis</div></div>
+          <div class="form-group">
+            <label class="form-label">Meeting Recording</label>
+            <div style="border:1px dashed var(--border);border-radius:var(--radius);padding:16px;text-align:center"><div class="text-muted" style="font-size:12px">MP4 / MOV / MKV / Audio · Max 2GB</div><button class="btn btn-ghost btn-sm mt-8">Choose File</button></div>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Transcript <span class="chip chip-ai" style="font-size:10px;margin-left:4px">Primary AI input</span></label>
+            <textarea class="form-textarea" style="min-height:60px" placeholder="Paste transcript or upload PDF/DOCX/TXT..."></textarea>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title mb-8">Mark Session Complete</div>
+          <div class="text-sm text-muted mb-12">Session notes (min 50 chars) + attendance required.</div>
+          <button class="btn btn-success" style="width:100%;justify-content:center" id="mark-complete-btn" onclick="markComplete()">✓ Mark Session Complete</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- S5 OUTPUTS -->
+  <div class="page" id="page-outputs">
+    <div class="section-title">Workshop Outputs Panel</div>
+    <div class="section-sub">Post-session workspace — consolidate and confirm all workshop-level outputs</div>
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab(this,'o-ps')">Problem Statement</div>
+      <div class="tab" onclick="switchTab(this,'o-di')">Delivery Intent</div>
+      <div class="tab" onclick="switchTab(this,'o-th')">Themes <span style="background:var(--ai-dim);color:var(--ai);padding:1px 5px;border-radius:10px;font-size:10px;margin-left:4px">✦ AI</span></div>
+      <div class="tab" onclick="switchTab(this,'o-wp')">Watchpoints <span style="background:var(--red-dim);color:var(--red);padding:1px 5px;border-radius:10px;font-size:10px;margin-left:4px">1 incomplete</span></div>
+      <div class="tab" onclick="switchTab(this,'o-vs')">Vision Statement</div>
+      <div class="tab" onclick="switchTab(this,'o-sig')">Outcome Signals</div>
+    </div>
+
+    <div id="o-ps">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Problem Statement</div><div class="card-subtitle">Single AI-generated narrative — V2 change from split evidence fields</div></div>
+          <span class="chip chip-green" id="o-ps-chip">Confirmed — Approved</span>
+        </div>
+        <div class="banner banner-ai" style="font-size:11px">✦ One consolidated narrative — not split into Objective/Subjective Evidence (V1 behaviour). Consultant can override or fully rewrite before confirming.</div>
+        <div class="ai-field-wrapper form-group">
+          <textarea class="form-textarea" style="min-height:150px;padding-right:90px">Meridian Financial presents a strong strategic case for a captive GCC in India. Stage 2 assessment reveals a 3.1/5 readiness score with notable gaps in governance (2.4) and talent pipeline (2.8) — delivery model intent is Entity-led with a 4-year horizon, yet no dedicated India-based leadership is in place and vendor dependency accounts for 68% of technology delivery. Stage 3 interviews reinforce CEO conviction around GCC ownership, while surfacing operational uncertainty: IP ownership is ambiguous, middle-management alignment is inconsistent.</textarea>
+          <div class="ai-badge-inline">✦ AI Draft</div>
+        </div>
+        <button class="btn btn-success" id="confirm-ps-btn" onclick="confirmOutput('o-ps-chip','Problem Statement confirmed','confirm-ps-btn')">✓ Confirm Problem Statement</button>
+      </div>
+    </div>
+
+    <div id="o-di" style="display:none">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Delivery Intent</div><span class="chip chip-green" id="o-di-chip">Confirmed — Approved</span></div>
+        <div style="padding:14px;background:var(--surface3);border-radius:var(--radius);margin-bottom:16px;display:flex;gap:12px;align-items:center">
+          <div style="font-size:24px">🏢</div>
+          <div><div class="font-semibold">Entity-Led GCC (Captive)</div><div class="text-sm text-muted mt-4">Read-only · Sourced from Stage 2 STA</div></div>
+          <div class="source-chip" style="margin-left:auto">Readiness 62%</div>
+        </div>
+        <div class="form-group"><label class="form-label">Participant Discussion Notes</label><textarea class="form-textarea">CEO strongly endorsed the captive model. CTO raised concerns about initial hiring timeline. COO requested quarterly governance reviews be built into the operating framework.</textarea></div>
+        <button class="btn btn-success" id="confirm-di-btn" onclick="confirmOutput('o-di-chip','Delivery Intent confirmed','confirm-di-btn')">✓ Confirm Delivery Intent</button>
+      </div>
+    </div>
+
+    <div id="o-th" style="display:none">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Strategic Themes Register</div><div class="card-subtitle">AI-generated from Selection Pool + Decisions Made + Session Insights + Problem Statement</div></div>
+          <div class="flex gap-8">
+            <button class="btn btn-ai btn-sm" id="gen-themes-btn" onclick="genThemes()">✦ Generate Themes with AI</button>
+            <button class="btn btn-secondary btn-sm" id="add-theme-btn" onclick="openModal('addThemeModal')">+ Add Manually</button>
+          </div>
+        </div>
+        <div class="banner banner-ai" style="font-size:11px">✦ V2 change: Themes are now AI-generated (not manually authored). All sessions must be complete before generating. Each theme is tagged AI Generated + Enabler or Watchpoint. Consultant can edit, merge, or discard any proposed theme.</div>
+        <div id="themes-list">
+          <div class="theme-card"><div class="theme-dot enabler"></div><div style="flex:1"><div class="font-semibold" style="font-size:13px">Capability Expansion</div><div class="text-xs text-muted mt-4">Scaling AI, data, and engineering depth with long-term internal ownership at Meridian's India GCC</div><div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap"><span class="chip chip-green">Enabler</span><span class="chip chip-ai" style="font-size:10px">✦ AI Generated</span><span class="chip chip-green" style="font-size:10px">Approved</span></div></div></div>
+          <div class="theme-card"><div class="theme-dot enabler"></div><div style="flex:1"><div class="font-semibold" style="font-size:13px">Captive Ownership</div><div class="text-xs text-muted mt-4">Full control over people, IP, finance, and governance — eliminating vendor dependency entirely</div><div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap"><span class="chip chip-green">Enabler</span><span class="chip chip-ai" style="font-size:10px">✦ AI Generated</span><span class="chip chip-green" style="font-size:10px">Approved</span></div></div></div>
+          <div class="theme-card"><div class="theme-dot watchpoint"></div><div style="flex:1"><div class="font-semibold" style="font-size:13px">Middle Management Alignment</div><div class="text-xs text-muted mt-4">Risk: operational leadership not aligned with GCC mandate — surfaced across Session 1 and 2 insights</div><div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap"><span class="chip chip-amber">Watchpoint</span><span class="chip chip-ai" style="font-size:10px">✦ AI Generated</span><span class="chip chip-amber" style="font-size:10px">Incomplete</span></div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <div id="o-wp" style="display:none">
+      <div class="banner banner-warning">⚠ 1 Watchpoint is incomplete. Mitigation Strategy and Assignee are required before proceeding.</div>
+      <div class="card">
+        <div class="card-title mb-12">Watchpoints Register</div>
+        <div class="wp-card complete mb-12">
+          <div class="flex items-center justify-between mb-8">
+            <div><div class="font-semibold" style="font-size:13px">IP Ownership Ambiguity</div><div class="text-xs mt-4"><span class="chip chip-ai" style="font-size:10px">✦ AI Generated</span> <span class="source-chip">Linked Theme: Captive Ownership</span></div></div>
+            <span class="chip chip-green">Complete</span>
+          </div>
+          <div class="text-sm text-muted mb-8">Unclear IP boundaries between parent and GCC entity may cause legal delays at entity formation stage.</div>
+          <div class="grid-2" style="font-size:11px;gap:8px">
+            <div><span class="text-dim">Likelihood:</span> <span class="chip chip-amber" style="font-size:10px">High</span></div>
+            <div><span class="text-dim">Impact:</span> <span class="chip chip-red" style="font-size:10px">High</span></div>
+            <div><span class="text-dim">Assignee:</span> R. Doshi (CTO)</div>
+            <div><span class="text-dim">Review:</span> Quarterly</div>
+          </div>
+        </div>
+        <div class="wp-card complete mb-12">
+          <div class="flex items-center justify-between mb-8">
+            <div><div class="font-semibold" style="font-size:13px">Talent Pipeline Risk</div><div class="text-xs mt-4"><span class="chip chip-ai" style="font-size:10px">✦ AI Generated</span> <span class="source-chip">Linked Theme: Capability Expansion</span></div></div>
+            <span class="chip chip-green">Complete</span>
+          </div>
+          <div class="text-sm text-muted mb-8">Engineering talent at required seniority level may not be available at target India cities within planned timeline.</div>
+          <div class="grid-2" style="font-size:11px;gap:8px">
+            <div><span class="text-dim">Likelihood:</span> <span class="chip chip-amber" style="font-size:10px">Medium</span></div>
+            <div><span class="text-dim">Impact:</span> <span class="chip chip-amber" style="font-size:10px">Medium</span></div>
+            <div><span class="text-dim">Assignee:</span> S. Patel (CEO)</div>
+            <div><span class="text-dim">Review:</span> Monthly</div>
+          </div>
+        </div>
+        <div class="wp-card incomplete">
+          <div class="flex items-center justify-between mb-12">
+            <div><div class="font-semibold" style="font-size:13px">Middle Management Alignment</div><div class="text-xs mt-4"><span class="chip chip-ai" style="font-size:10px">✦ AI Generated</span> <span class="source-chip">Linked Theme: Middle Management Alignment</span></div></div>
+            <span class="chip chip-red">Incomplete</span>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Description <span class="req">*</span></label>
+            <div class="ai-field-wrapper">
+              <textarea class="form-textarea" style="padding-right:90px">Operational leadership cohort (COO, department heads) has not been sufficiently aligned to the GCC mandate. Risk of passive resistance or misaligned priorities during ramp-up phase.</textarea>
+              <div class="ai-badge-inline">✦ AI Draft</div>
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="form-group"><label class="form-label">Likelihood <span class="req">*</span></label><select class="form-select"><option value="">— select —</option><option>High</option><option selected>Medium</option><option>Low</option></select></div>
+            <div class="form-group"><label class="form-label">Impact <span class="req">*</span></label><select class="form-select"><option value="">— select —</option><option>High</option><option selected>Medium</option><option>Low</option></select></div>
+            <div class="form-group">
+              <label class="form-label">Mitigation Strategy <span class="req">*</span></label>
+              <div class="ai-field-wrapper"><textarea class="form-textarea" style="min-height:70px;padding-right:90px" placeholder="Hard gate — required. AI proposes draft..."></textarea><div class="ai-badge-inline">✦ AI Draft</div></div>
+            </div>
+            <div class="form-group"><label class="form-label">Assignee <span class="req">*</span></label><select class="form-select"><option value="">— select participant —</option><option>S. Patel (CEO)</option><option>R. Doshi (CTO)</option><option>M. Iyer (COO)</option></select></div>
+          </div>
+          <div class="form-group"><label class="form-label">Review Cadence <span class="req">*</span></label><select class="form-select" style="width:200px"><option>Monthly</option><option>Quarterly</option></select></div>
+          <button class="btn btn-primary btn-sm" onclick="showToast('Watchpoint saved','success')">Save Watchpoint</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="o-vs" style="display:none">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Vision Statement</div><span class="chip chip-green" id="o-vs-chip">Locked · Approved</span></div>
+        <!-- V2: 3-stage lifecycle -->
+        <div class="lifecycle-track mb-16">
+          <div class="lifecycle-step done"><div class="lifecycle-step-num">Workshop 1</div><div class="lifecycle-step-label">✦ AI Draft Generated</div><div class="lifecycle-step-sub">Alignment WS · Editable by Consultant</div></div>
+          <div class="lifecycle-step active"><div class="lifecycle-step-num">Workshop 2</div><div class="lifecycle-step-label">🔒 Finalised &amp; Locked</div><div class="lifecycle-step-sub">Client Visioning · Read-only after WS2</div></div>
+          <div class="lifecycle-step"><div class="lifecycle-step-num">Post RM Approval</div><div class="lifecycle-step-label">👁 Client Visible</div><div class="lifecycle-step-sub">Released after RM approves Stage 4</div></div>
+        </div>
+        <div class="banner banner-ai" style="font-size:11px">✦ V2 change: AI-assisted draft generated at the outcome of Workshop 1 (Alignment Workshop), using Problem Statement, Enabler themes, and Stage 3 signals. Not visible to client until after RM approval.</div>
+        <div class="banner banner-warning" style="font-size:11px">🔒 Locked after Workshop 2 finalisation. To re-open, a formal re-open action with re-approval is required.</div>
+        <div class="form-group"><label class="form-label">Vision Statement <span class="read-only-badge">🔒 Locked</span></label><div class="field-readonly" style="min-height:120px;line-height:1.7;color:var(--text)">Meridian's India GCC will become the engine of its global technology capability — a fully-owned, talent-rich centre that delivers AI, data, and engineering solutions with the speed, quality, and ownership that no vendor model can match. By 2028, it will be the primary driver of Meridian's digital transformation, with full IP control and a culture of continuous innovation rooted in India.</div></div>
+        <div class="form-group" style="margin-bottom:0"><label class="form-label">CEO Confirmation Note <span class="read-only-badge">🔒 Locked</span></label><div class="field-readonly">I confirm my approval of this Vision Statement. — S. Patel, CEO, 18 Jun 2025 · 11:47 AM</div></div>
+        <div class="info-box mt-12">Vision Statement not yet visible to client. Will be released for client visibility once RM approves Stage 4 Consolidated Summary.</div>
+      </div>
+    </div>
+
+    <div id="o-sig" style="display:none">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Outcome Signals</div><div class="card-subtitle">Manually recorded by Consultant — reflects observations from workshop sessions</div></div>
+        <div class="grid-2">
+          <div class="form-group"><label class="form-label">Leadership Alignment <span class="req">*</span></label><select class="form-select"><option>Strong</option><option>Moderate</option><option>Weak</option></select></div>
+          <div class="form-group"><label class="form-label">Strategic Clarity <span class="req">*</span></label><select class="form-select"><option>High</option><option>Developing</option><option>Low</option></select></div>
+          <div class="form-group"><label class="form-label">Transformation Readiness <span class="req">*</span></label><select class="form-select"><option>Conditionally Ready</option><option>Ready</option><option>Not Ready</option></select></div>
+          <div class="form-group"><label class="form-label">Execution Signal <span class="req">*</span></label><select class="form-select"><option>Moderate</option><option>Strong</option><option>Weak</option></select></div>
+        </div>
+        <button class="btn btn-success btn-sm" onclick="showToast('Outcome Signals recorded','success')">✓ Save Outcome Signals</button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="flex gap-8" id="out-actions">
+      <button class="btn btn-secondary" onclick="showToast('Draft saved','info')">Save Draft</button>
+      <button class="btn btn-primary" onclick="navigate('ws-summary');showToast('Proceeding to Workshop Summary','info')">Proceed to Workshop Summary →</button>
+    </div>
+  </div>
+
+  <!-- S6 WORKSHOP SUMMARY -->
+  <div class="page" id="page-ws-summary">
+    <div class="section-title">Workshop Summary &amp; RM Submission</div>
+    <div class="section-sub">Review auto-generated summary, confirm strategic direction, and submit for RM approval</div>
+    <div class="grid-2">
+      <div>
+        <div class="card mb-12">
+          <div class="card-header"><div class="card-title">Agreed Strategic Direction</div></div>
+          <div class="form-group"><label class="form-label">Engagement Model Confirmed <span class="req">*</span></label><select class="form-select ws-field"><option>GCC (Entity-Led Captive)</option><option>Managed BOT</option><option>Hybrid GCC</option><option>BOT</option></select></div>
+          <div class="form-group"><label class="form-label">India Positioning <span class="req">*</span></label><textarea class="form-textarea ws-field">Bengaluru as primary GCC hub. Secondary presence in Pune for operations and finance functions. Phased hiring of 200 FTEs over 36 months.</textarea></div>
+          <div class="form-group" style="margin-bottom:0">
+            <label class="form-label">Key Strategic Emphases <span class="req">*</span></label>
+            <div style="display:flex;flex-wrap:wrap;gap:6px;padding:10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius)">
+              <span class="field-tag" style="color:var(--text)">AI-first talent strategy ✕</span>
+              <span class="field-tag" style="color:var(--text)">Full IP ownership ✕</span>
+              <span class="field-tag" style="color:var(--text)">Phased entity setup ✕</span>
+              <input class="form-input ws-field" style="border:none;background:transparent;padding:2px 4px;font-size:12px;width:130px" placeholder="+ add emphasis..." />
+            </div>
+            <div class="form-hint">Minimum 2 tags required</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Additional Consultant Notes</div><span class="read-only-badge">Internal only</span></div>
+          <textarea class="form-textarea ws-field" placeholder="Internal notes not shown to client participants..."></textarea>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Workshop Summary</div><span class="chip chip-ai">✦ AI Generated</span></div>
+        <div class="banner banner-ai" style="font-size:11px">✦ Generated by cumulating all session recordings and outputs for this workshop. Includes notes, decisions, challenges, attendance, confirmed Problem Statement, Delivery Intent, Strategic Themes, Watchpoints, Outcome Signals, and Strategic Direction.</div>
+        <div style="background:var(--surface3);border-radius:var(--radius);padding:14px;font-size:12px;color:var(--text-muted);line-height:1.7">
+          <div style="font-weight:600;color:var(--text);font-size:13px;margin-bottom:10px">Meridian — Client Visioning Workshop</div>
+          <div style="margin-bottom:6px"><span style="color:var(--text-dim)">Sessions:</span> 3 (2 complete, 1 pending)</div>
+          <div style="margin-bottom:6px"><span style="color:var(--text-dim)">Problem Statement:</span> Approved · Single AI narrative</div>
+          <div style="margin-bottom:6px"><span style="color:var(--text-dim)">Delivery Intent:</span> Entity-Led GCC · Approved</div>
+          <div style="margin-bottom:6px"><span style="color:var(--text-dim)">Vision Statement:</span> Locked · CEO Approved · Pending RM release to client</div>
+          <div style="margin-bottom:6px"><span style="color:var(--text-dim)">Strategic Themes:</span> 8 AI-generated (5 Enabler, 3 Watchpoint)</div>
+          <div style="margin-bottom:6px"><span style="color:var(--text-dim)">Watchpoints:</span> 2/3 complete</div>
+          <div style="margin-bottom:6px"><span style="color:var(--text-dim)">Outcome Signals:</span> Leadership: Strong · Clarity: High</div>
+          <div><span style="color:var(--text-dim)">Strategic Direction:</span> GCC Captive · Bengaluru primary hub</div>
+        </div>
+      </div>
+    </div>
+    <div class="divider"></div>
+    <div class="flex gap-8" id="s6-actions">
+      <button class="btn btn-secondary" onclick="showToast('Draft saved','info')">Save Draft</button>
+      <button class="btn btn-ghost ws-field">Mark Complete (Alignment WS only)</button>
+      <button class="btn btn-primary ws-field" onclick="showToast('Workshop submitted to RM for review','success');navigate('dashboard')">Submit to RM for Review →</button>
+    </div>
+  </div>
+
+  <!-- S7 CONSOLIDATED SUMMARY -->
+  <div class="page" id="page-consolidated">
+    <div class="section-title">Consolidated Stage 4 Summary</div>
+    <div class="section-sub">Aggregate view across all workshops · Submit to RM for Stage 4 final approval</div>
+    <div class="banner banner-warning">⚠ Exit criteria not fully met. Resolve 1 incomplete Watchpoint before submitting.</div>
+    <div class="grid-2 mb-16">
+      <div class="card">
+        <div class="card-header"><div class="card-title">Consolidated Outputs</div></div>
+        <div class="status-row"><div class="status-check met">✓</div><div class="status-label met">Problem Statement</div><span class="chip chip-green">Approved</span></div>
+        <div class="status-row"><div class="status-check met">✓</div><div class="status-label met">Delivery Intent</div><span class="chip chip-green">Approved</span></div>
+        <div class="status-row"><div class="status-check met">✓</div><div class="status-label met">Vision Statement</div><span class="chip chip-green">Locked · Approved</span></div>
+        <div class="status-row"><div class="status-check met">✓</div><div class="status-label met">Strategic Themes</div><span class="chip chip-ai">8 AI-generated</span></div>
+        <div class="status-row"><div class="status-check blocked">!</div><div class="status-label">Watchpoints</div><span class="chip chip-amber">2 of 3 complete</span></div>
+        <div class="status-row"><div class="status-check met">✓</div><div class="status-label met">Strategic Direction</div><span class="chip chip-green">Finalised</span></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">Stage-Level Exit Criteria</div></div>
+        <div class="checklist-item"><div><span class="chip chip-green" style="padding:2px 5px;font-size:10px">✓</span></div><div class="checklist-text done"><span class="checklist-code">S01</span>Client Visioning Workshop exists + Approved</div></div>
+        <div class="checklist-item"><div><span class="chip chip-green" style="padding:2px 5px;font-size:10px">✓</span></div><div class="checklist-text done"><span class="checklist-code">S02</span>Vision Statement approved</div></div>
+        <div class="checklist-item"><div><span class="chip chip-red" style="padding:2px 5px;font-size:10px">✗</span></div><div class="checklist-text"><span class="checklist-code">S03</span>All Watchpoints complete — 1 remaining</div></div>
+        <div class="checklist-item"><div><span class="chip chip-green" style="padding:2px 5px;font-size:10px">✓</span></div><div class="checklist-text done"><span class="checklist-code">S04</span>Strategic Direction finalised</div></div>
+        <div class="checklist-item"><div><span class="chip chip-dim" style="padding:2px 5px;font-size:10px">○</span></div><div class="checklist-text"><span class="checklist-code">S07</span>Stage 5 intro + date confirmed in Dewdrop</div></div>
+      </div>
+    </div>
+    <div class="card mb-16">
+      <div class="card-header"><div class="card-title">Workshop Summaries</div></div>
+      <div class="status-row"><div class="status-check met">✓</div><div class="status-label met">Meridian – Alignment Workshop</div><span class="chip chip-green">Complete</span><button class="btn btn-ghost btn-sm" style="margin-left:8px">View →</button></div>
+      <div class="status-row"><div class="status-check pending">○</div><div class="status-label">Meridian – Client Visioning Workshop</div><span class="chip chip-amber">Pending RM Review</span><button class="btn btn-ghost btn-sm" style="margin-left:8px">View →</button></div>
+    </div>
+    <div class="flex gap-8">
+      <button class="btn btn-secondary" onclick="showToast('Draft saved','info')">Save Draft</button>
+      <button class="btn btn-primary" disabled style="opacity:.4">Submit to RM for Stage 4 Approval — criteria not met</button>
+    </div>
+  </div>
+
+  </div>
+</div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="createWsModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Create Workshop</div><button class="modal-close" onclick="closeModal('createWsModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Workshop Name <span class="req">*</span></label><input class="form-input" value="Meridian – " /></div>
+      <div class="form-group"><label class="form-label">Workshop Type <span class="req">*</span></label><select class="form-select"><option>Alignment Workshop</option><option>Client Visioning Workshop</option></select></div>
+      <div class="form-group"><label class="form-label">Workshop Owner <span class="req">*</span></label><select class="form-select"><option>J. Kapoor (you)</option><option>A. Sharma</option></select></div>
+      <div class="form-group" style="margin-bottom:0"><label class="form-label">Description</label><textarea class="form-textarea" placeholder="Optional workshop purpose and agenda..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('createWsModal')">Cancel</button><button class="btn btn-primary" onclick="closeModal('createWsModal');showToast('Workshop created. Add sessions to begin.','success')">Create Workshop</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="addSessionModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Add Session</div><button class="modal-close" onclick="closeModal('addSessionModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="form-group"><label class="form-label">Session Title <span class="req">*</span></label><input class="form-input" value="Client Visioning – Session 4" /></div>
+      <div class="grid-2">
+        <div class="form-group"><label class="form-label">Date <span class="req">*</span></label><input class="form-input" type="date" /></div>
+        <div class="form-group"><label class="form-label">Time <span class="req">*</span></label><input class="form-input" type="time" /></div>
+        <div class="form-group"><label class="form-label">Duration <span class="req">*</span></label><select class="form-select"><option>2 hours</option><option selected>3 hours</option><option>4 hours</option><option>Half Day</option><option>Full Day</option></select></div>
+        <div class="form-group"><label class="form-label">Format <span class="req">*</span></label><select class="form-select"><option>Video Call</option><option>In-Person</option><option>Hybrid</option></select></div>
+      </div>
+      <div class="form-group"><label class="form-label">Meeting Platform</label><select class="form-select"><option>Microsoft Teams</option><option>Google Meet</option><option>Zoom</option><option>Zoho Meeting</option></select></div>
+      <div class="form-group" style="margin-bottom:0"><label class="form-label">Meeting Link</label><input class="form-input" placeholder="https://..." /></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('addSessionModal')">Cancel</button><button class="btn btn-primary" onclick="closeModal('addSessionModal');showToast('Session created. Calendar invites sent.','success')">Create Session</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="addThemeModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Add Theme Manually</div><button class="modal-close" onclick="closeModal('addThemeModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="banner banner-ai" style="font-size:11px;margin-bottom:12px">✦ Manual themes are tagged Consultant Defined. AI-generated themes are proposed automatically after all sessions complete.</div>
+      <div class="form-group"><label class="form-label">Theme Name <span class="req">*</span></label><select class="form-select"><option>Capability Expansion</option><option>Innovation Enablement</option><option>Quality &amp; Governance</option><option>Cost Optimisation</option><option>Talent Access</option><option>Captive Ownership</option><option>Delivery Resilience</option><option>Scalable Operations</option><option>— Custom Theme —</option></select></div>
+      <div class="form-group"><label class="form-label">Theme Type <span class="req">*</span></label><div style="display:flex;gap:16px;padding:10px 0"><label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="radio" name="th-type" checked style="accent-color:var(--accent)"> <span class="chip chip-green">Enabler</span></label><label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer"><input type="radio" name="th-type" style="accent-color:var(--accent)"> <span class="chip chip-amber">Watchpoint</span></label></div></div>
+      <div class="form-group" style="margin-bottom:0"><label class="form-label">Description <span class="req">*</span></label><textarea class="form-textarea" placeholder="Min 50 chars — describe in context of this engagement..."></textarea></div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('addThemeModal')">Cancel</button><button class="btn btn-primary" onclick="closeModal('addThemeModal');showToast('Theme added — tagged Consultant Defined','success')">Add Theme</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="addParticipantModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Add External Participant</div><button class="modal-close" onclick="closeModal('addParticipantModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="banner banner-danger" style="font-size:11px;margin-bottom:12px">External participants receive email + calendar invites only. They never receive Dewdrop platform access.</div>
+      <div class="grid-2">
+        <div class="form-group"><label class="form-label">Full Name <span class="req">*</span></label><input class="form-input" placeholder="e.g. Rahul Mehta" /></div>
+        <div class="form-group"><label class="form-label">Designation <span class="req">*</span></label><input class="form-input" placeholder="e.g. CFO" /></div>
+        <div class="form-group"><label class="form-label">Organisation</label><input class="form-input" value="Meridian Financial" /></div>
+        <div class="form-group"><label class="form-label">Email <span class="req">*</span></label><input class="form-input" type="email" placeholder="name@meridian.com" /></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('addParticipantModal')">Cancel</button><button class="btn btn-primary" onclick="closeModal('addParticipantModal');showToast('Participant added. Invite sent on session confirmation.','success')">Add Participant</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="regenModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Regenerate Problem Statement?</div><button class="modal-close" onclick="closeModal('regenModal')">✕</button></div>
+    <div class="modal-body">
+      <div class="banner banner-warning">Regeneration will replace your current edits with a fresh AI draft using latest Stage 1–3 data. This cannot be undone.</div>
+      <p style="font-size:13px;color:var(--text-muted);margin-top:8px">Your manual edits will be lost. Proceed only if you want a fresh AI draft.</p>
+    </div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('regenModal')">Cancel — Keep my edits</button><button class="btn btn-ai" onclick="closeModal('regenModal');doRegen()">✦ Regenerate with AI</button></div>
+  </div>
+</div>
+<div class="modal-overlay" id="returnModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Return for Revision</div><button class="modal-close" onclick="closeModal('returnModal')">✕</button></div>
+    <div class="modal-body"><div class="form-group"><label class="form-label">Return Comments <span class="req">*</span></label><textarea class="form-textarea" style="min-height:100px" placeholder="Feedback for the consultant (min 20 chars)..."></textarea><div class="form-hint">Comments will be shown as a persistent banner to the consultant throughout editing.</div></div></div>
+    <div class="modal-footer"><button class="btn btn-ghost" onclick="closeModal('returnModal')">Cancel</button><button class="btn btn-danger" onclick="closeModal('returnModal');showToast('Workshop returned. Consultant notified.','warning')">Return for Revision</button></div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+let currentRole='consultant';
+function navigate(p){
+  document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(e=>e.classList.remove('active'));
+  const el=document.getElementById('page-'+p);if(el)el.classList.add('active');
+  const names={dashboard:'Dashboard','ws-setup':'Workshop Setup (S2)',sessions:'Session Management (S3)','session-live':'Session 3 — Live (S4)',outputs:'Workshop Outputs (S5)','ws-summary':'Workshop Summary (S6)',consolidated:'Consolidated Summary (S7)'};
+  document.getElementById('topbarCurrent').textContent=names[p]||p;
+  applyRole();
+}
+function switchRole(r){
+  currentRole=r;
+  const m={consultant:['GCC Advisory Lead','consultant'],'add-consultant':['Additional Consultant','add-consultant'],rm:['Relationship Manager','rm'],admin:['Admin','admin']};
+  const [l,c]=m[r];const b=document.getElementById('roleBadge');b.textContent='● '+l;b.className='role-badge '+c;
+  applyRole();showToast('Role: '+l,'info');
+}
+function applyRole(){
+  const isCon=currentRole==='consultant',isRM=currentRole==='rm',isAdd=currentRole==='add-consultant',isAdmin=currentRole==='admin';
+  const dc=document.getElementById('dash-consultant'),dr=document.getElementById('dash-rm');
+  if(dc)dc.style.display=isRM?'none':'block';if(dr)dr.style.display=isRM?'block':'none';
+  const cwb=document.getElementById('create-ws-btn');if(cwb)cwb.style.display=(isCon||isAdmin)?'inline-flex':'none';
+  const asb=document.getElementById('add-session-btn');if(asb)asb.style.display=(isCon||isAdd||isAdmin)?'inline-flex':'none';
+  ['add-con-btn','rm-con-btn'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display=(isCon||isAdmin)?'inline-flex':'none';});
+  const wo=document.getElementById('ws-owner');if(wo)wo.disabled=isAdd||isRM;
+  document.querySelectorAll('.ws-field').forEach(f=>f.disabled=isRM);
+  ['ws-h-actions','out-actions','s6-actions'].forEach(id=>{const e=document.getElementById(id);if(e)e.style.display=isRM?'none':'flex';});
+  ['confirm-ps-btn','confirm-di-btn','mark-ip-btn','mark-complete-btn','run-ai-btn','gen-themes-btn','add-theme-btn','add-ext-btn','ws-ps-chip'].forEach(id=>{
+    const e=document.getElementById(id);if(e&&id==='ws-ps-chip')return;if(e)e.style.display=isRM?'none':'inline-flex';
+  });
+  document.querySelectorAll('.ws-only-btn').forEach(e=>e.style.display=isRM?'none':'inline-flex');
+}
+function switchTab(el,id){
+  el.closest('.tabs').querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');
+  const all=['ws-h','ws-c','ws-s3','ws-ps','ws-di','o-ps','o-di','o-th','o-wp','o-vs','o-sig'];
+  all.forEach(i=>{const e=document.getElementById(i);if(e)e.style.display='none';});
+  const t=document.getElementById(id);if(t)t.style.display='block';
+}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+function showToast(msg,type='info'){
+  const c=document.getElementById('toastContainer');const t=document.createElement('div');t.className='toast '+type;
+  const ic={success:'✓',info:'ℹ',warning:'⚠',error:'✗',ai:'✦'};t.innerHTML=`<span>${ic[type]||'ℹ'}</span><span>${msg}</span>`;
+  c.appendChild(t);setTimeout(()=>t.remove(),3800);
+}
+function markInProgress(){
+  const b=document.getElementById('mark-ip-btn'),c=document.getElementById('s4-chip');
+  b.textContent='● In Progress';b.disabled=true;b.className='btn btn-ghost';
+  c.textContent='● In Progress';c.className='chip chip-blue';
+  showToast('Session 3 is now In Progress','info');
+}
+function markComplete(){
+  const n=document.getElementById('session-notes').value;
+  if(n.length<50){showToast('Session Notes must be at least 50 characters','warning');return;}
+  showToast('Session 3 marked complete. Run AI Analysis to generate Decisions & Insights.','success');
+  setTimeout(()=>navigate('outputs'),900);
+}
+function runAI(){
+  const b=document.getElementById('run-ai-btn');b.textContent='✦ Analysing...';b.disabled=true;
+  setTimeout(()=>{b.textContent='✓ Analysis Complete';b.className='btn btn-success btn-sm';showToast('AI analysis complete — Decisions Made and Session Insights updated','ai');},2000);
+}
+function regenPS(){openModal('regenModal');}
+function doRegen(){showToast('Problem Statement regenerated with latest Stage 1–3 data','ai');const f=document.getElementById('ps-field');if(f)f.value='[Regenerated AI Draft] Meridian Financial presents compelling evidence for a captive GCC investment...';}
+function genThemes(){
+  const b=document.getElementById('gen-themes-btn');b.textContent='✦ Generating...';b.disabled=true;
+  setTimeout(()=>{b.textContent='✓ Themes Generated';b.className='btn btn-success btn-sm';showToast('8 strategic themes generated — 5 Enabler, 3 Watchpoint','ai');},2200);
+}
+function addLog(){const i=document.getElementById('log-input');if(!i.value.trim())return;const l=document.getElementById('discussion-log');const now=new Date();const t=now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');const d=document.createElement('div');d.style.cssText='border-bottom:1px solid var(--border);padding-bottom:6px;margin-bottom:6px;';d.innerHTML=`<span class="font-mono" style="color:var(--text-dim)">${t}</span> ${i.value}`;l.appendChild(d);i.value='';}
+function addChallenge(){const i=document.getElementById('challenge-input');if(!i.value.trim())return;const l=document.getElementById('challenges-list');const d=document.createElement('div');d.style.cssText='display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;';d.innerHTML=`<span style="color:var(--amber)">⚠</span> ${i.value}`;l.appendChild(d);i.value='';}
+function addDecision(){const i=document.getElementById('decision-input');if(!i.value.trim())return;const a=document.getElementById('manual-decisions');const d=document.createElement('div');d.className='ai-item';d.innerHTML=`<div class="ai-item-text">${i.value}</div><div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end"><span class="chip chip-dim" style="font-size:10px">Consultant Added</span></div>`;a.appendChild(d);i.value='';showToast('Decision logged','success');}
+function confirmOutput(cid,msg,bid){
+  const c=document.getElementById(cid);if(c){c.className='chip chip-green';c.textContent='Confirmed — Approved';}
+  const b=document.getElementById(bid);if(b){b.textContent='✓ Confirmed';b.disabled=true;b.className='btn btn-ghost btn-sm';}
+  showToast(msg,'success');
+}
+applyRole();
+</script>
+</body>
+</html>
